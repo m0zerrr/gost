@@ -1,91 +1,215 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ГОСТ-форматтер</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-      <h1 class="text-2xl font-bold text-center text-gray-800 mb-2">🎓 ГОСТ-Форматтер</h1>
-      <p class="text-center text-gray-500 mb-6">Загрузи .docx и получи работу по ГОСТу за секунды</p>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #333; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-title { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .step-description { color: #666; font-size: 0.9em; margin-bottom: 15px; }
+        .file-input { display: none; }
+        .file-label {
+            display: block;
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+        .file-label:hover { background: #5568d3; }
+        .file-name { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        .btn:hover { background: #5568d3; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .instruction {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #856404;
+        }
+        .instruction strong { display: block; margin-bottom: 5px; }
+        .loading { display: none; text-align: center; color: #667eea; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 ГОСТ-Форматтер</h1>
+        <p class="subtitle">Двухэтапная обработка</p>
 
-      <form id="uploadForm" class="space-y-4">
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
-          <input type="file" id="fileInput" accept=".docx" required class="hidden">
-          <label for="fileInput" class="cursor-pointer">
-            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            <p class="mt-2 text-sm text-gray-600" id="fileName">Нажми для выбора файла .docx</p>
-          </label>
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Оформление текста
+            </div>
+            <div class="step-description">
+                Загрузите документ. Программа оформит текст по ГОСТу (шрифты, отступы, заголовки). Таблицы НЕ разбиваются.
+            </div>
+            <input type="file" id="file1" class="file-input" accept=".docx">
+            <label for="file1" class="file-label">Выбрать файл .docx</label>
+            <div class="file-name" id="fileName1">Файл не выбран</div>
+            <button class="btn" id="btn1" onclick="formatText()">Оформить текст</button>
+            <div class="loading" id="loading1">Обработка...</div>
         </div>
 
-        <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400">
-            Оформить по ГОСТ
-        </button>
-      </form>
+        <div class="instruction">
+            <strong>⚠️ Важно!</strong>
+            Откройте скачанный файл в Word. Найдите таблицы, которые переносятся на следующую страницу.
+            Поставьте курсор в ячейку, где должна начаться новая страница таблицы, и нажмите <strong>Ctrl+Enter</strong>.
+            Сохраните файл и загрузите его на шаге 2.
+        </div>
 
-      <div id="status" class="mt-4 text-center text-sm hidden"></div>
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Разбиение таблиц
+            </div>
+            <div class="step-description">
+                Загрузите файл после добавления разрывов страниц в таблицах. Программа разобьёт таблицы с подписями "Продолжение/Окончание".
+            </div>
+            <input type="file" id="file2" class="file-input" accept=".docx">
+            <label for="file2" class="file-label">Выбрать файл .docx</label>
+            <div class="file-name" id="fileName2">Файл не выбран</div>
+            <button class="btn" id="btn2" onclick="splitTables()">Разбить таблицы</button>
+            <div class="loading" id="loading2">Обработка...</div>
+        </div>
     </div>
 
     <script>
-      const fileInput = document.getElementById('fileInput');
-      const fileName = document.getElementById('fileName');
-      const form = document.getElementById('uploadForm');
-      const submitBtn = document.getElementById('submitBtn');
-      const status = document.getElementById('status');
+        document.getElementById('file1').addEventListener('change', function(e) {
+            document.getElementById('fileName1').textContent = e.target.files[0]?.name || 'Файл не выбран';
+        });
 
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            fileName.textContent = e.target.files[0].name;
+        document.getElementById('file2').addEventListener('change', function(e) {
+            document.getElementById('fileName2').textContent = e.target.files[0]?.name || 'Файл не выбран';
+        });
+
+        async function formatText() {
+            const file = document.getElementById('file1').files[0];
+            if (!file) { alert('Выберите файл!'); return; }
+
+            const btn = document.getElementById('btn1');
+            const loading = document.getElementById('loading1');
+            btn.disabled = true;
+            loading.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/format-text', { method: 'POST', body: formData });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `formatted_${file.name}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    alert('Текст оформлен! Откройте файл в Word и добавьте разрывы страниц в таблицах (Ctrl+Enter).');
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Ошибка');
+                }
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
         }
-      });
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const file = fileInput.files[0];
-        if (!file) return;
+        async function splitTables() {
+            const file = document.getElementById('file2').files[0];
+            if (!file) { alert('Выберите файл!'); return; }
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Обрабатываю...';
-        status.classList.remove('hidden');
-        status.className = "mt-4 text-center text-sm text-blue-600";
-        status.textContent = 'Применяем магию ГОСТ...';
+            const btn = document.getElementById('btn2');
+            const loading = document.getElementById('loading2');
+            btn.disabled = true;
+            loading.style.display = 'block';
 
-        const formData = new FormData();
-        formData.append('file', file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-        try {
-            const response = await fetch('/format', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) throw new Error('Ошибка на сервере');
-
-            // Получаем файл и скачиваем
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `GOST_${file.name}`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-            status.className = "mt-4 text-center text-sm text-green-600 font-semibold";
-            status.textContent = '✅ Готово! Файл скачан.';
-        } catch (error) {
-            status.className = "mt-4 text-center text-sm text-red-600";
-            status.textContent = '❌ Ошибка: ' + error.message;
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Оформить по ГОСТ';
+            try {
+                const response = await fetch('/split-tables', { method: 'POST', body: formData });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `GOST_${file.name}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    alert('Готово! Таблицы разбиты по ГОСТу.');
+                } else {
+                    const error = await response.json();
+                    alert(error.error || 'Ошибка');
+                }
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
         }
-      });
     </script>
-  </body>
+</body>
 </html>
